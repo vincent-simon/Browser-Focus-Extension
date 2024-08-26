@@ -1,27 +1,39 @@
-// List of sites to block
-const blockedSites = ['instagram.com', 'twitter.com', 'x.com', 'youtube.com'];
+const defaultBlockedSites = ['instagram.com', 'twitter.com', 'x.com', 'youtube.com'];
 
-// Function to check if a site is blocked
-function isSiteBlocked(url) {
-    for (let i = 0; i < blockedSites.length; i++) {
-        if (url.hostname.includes(blockedSites[i])) {
-            return true;
-        }
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.local.get(['blacklist', 'whitelist'], (result) => {
+    if (!result.blacklist) {
+      // Set default blacklist if not already set
+      chrome.storage.local.set({ blacklist: defaultBlockedSites });
+    } else {
+      // Ensure default sites are always in the blacklist
+      const updatedBlacklist = [...new Set([...defaultBlockedSites, ...result.blacklist])];
+      chrome.storage.local.set({ blacklist: updatedBlacklist });
     }
-    return false;
-}
+    
+    if (!result.whitelist) {
+      // Initialize empty whitelist if not set
+      chrome.storage.local.set({ whitelist: [] });
+    }
+  });
+});
 
-// Listener for when the extension is installed or updated
-chrome.runtime.onInstalled.addListener(function() {
-    chrome.webNavigation.onBeforeNavigate.addListener(function(details) {
-        chrome.storage.local.get(['focusMode'], function(result) {
-            // Only block sites if focus mode is enabled
-            if (result.focusMode) {
-                const url = new URL(details.url);
-                if (isSiteBlocked(url)) {
-                    chrome.tabs.update(details.tabId, {url: 'blocked.html'});
-                }
-            }
-        });
-    });
+chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+  chrome.storage.local.get(['focusMode', 'blacklist', 'whitelist'], (result) => {
+    if (result.focusMode) {
+      const url = new URL(details.url);
+      const hostname = url.hostname.toLowerCase();
+
+      // Check whitelist first
+      if (result.whitelist && result.whitelist.some(site => hostname.includes(site.toLowerCase()))) {
+        return; // Allow access to whitelisted sites
+      }
+
+      // Check blacklist (including default sites)
+      const fullBlacklist = [...new Set([...defaultBlockedSites, ...(result.blacklist || [])])];
+      if (fullBlacklist.some(site => hostname.includes(site.toLowerCase()))) {
+        chrome.tabs.update(details.tabId, {url: 'blocked.html'});
+      }
+    }
+  });
 });

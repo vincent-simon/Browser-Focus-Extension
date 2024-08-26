@@ -14,12 +14,25 @@ function toggleFocusMode() {
     });
 }
 
-// Event listener for when the popup DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    const toggleButton = document.getElementById('toggleFocus');
+    const optionsButton = document.getElementById('options');
+
     chrome.storage.local.get(['focusMode'], function(result) {
-        updateToggleButtonText(result.focusMode);
+      toggleButton.textContent = result.focusMode ? 'Stop Focus' : 'Start Focus';
     });
 
-    const toggleButton = document.getElementById('toggleFocus');
-    toggleButton.addEventListener('click', toggleFocusMode);
+    toggleButton.addEventListener('click', function() {
+      chrome.storage.local.get(['focusMode'], function(result) {
+        const newFocusMode = !result.focusMode;
+        chrome.storage.local.set({focusMode: newFocusMode}, function() {
+          toggleButton.textContent = newFocusMode ? 'Stop Focus' : 'Start Focus';
+        });
+      });
+    });
+
+    optionsButton.addEventListener('click', function() {
+      chrome.runtime.openOptionsPage();
+    });
 });
+
