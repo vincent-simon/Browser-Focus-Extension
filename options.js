@@ -1,6 +1,10 @@
 const defaultBlockedSites = ['instagram.com', 'twitter.com', 'x.com', 'youtube.com'];
 
 document.addEventListener('DOMContentLoaded', function () {
+    initializeOptions();
+});
+
+function initializeOptions() {
     const blacklistInput = document.getElementById('blacklist-input');
     const addBlacklistButton = document.getElementById('add-blacklist');
     const blacklistList = document.getElementById('blacklist');
@@ -9,73 +13,70 @@ document.addEventListener('DOMContentLoaded', function () {
     const addWhitelistButton = document.getElementById('add-whitelist');
     const whitelistList = document.getElementById('whitelist');
 
-    // Load saved lists
+    loadLists(blacklistList, whitelistList);
+
+    addBlacklistButton.addEventListener('click', function () {
+        addSiteToList(blacklistInput, blacklistList, 'blacklist');
+    });
+
+    addWhitelistButton.addEventListener('click', function () {
+        addSiteToList(whitelistInput, whitelistList, 'whitelist');
+    });
+}
+
+function loadLists(blacklistList, whitelistList) {
     chrome.storage.local.get(['blacklist', 'whitelist'], function (result) {
-        const blacklist = result.blacklist || [];
-        const whitelist = result.whitelist || [];
+        const fullBlacklist = mergeLists(defaultBlockedSites, result.blacklist || []);
+        displayList(fullBlacklist, blacklistList, 'blacklist', true);
+        displayList(result.whitelist || [], whitelistList, 'whitelist', false);
 
-        // Ensure default sites are always in the blacklist
-        const fullBlacklist = [...new Set([...defaultBlockedSites, ...blacklist])];
-        
-        // Display blacklist (including default sites)
-        fullBlacklist.forEach(site => addListItem(site, blacklistList, 'blacklist', defaultBlockedSites.includes(site)));
-        
-        // Display whitelist
-        whitelist.forEach(site => addListItem(site, whitelistList, 'whitelist', false));
-
-        // Save the updated blacklist
+        // Save the updated blacklist to ensure defaults are always included
         chrome.storage.local.set({ blacklist: fullBlacklist });
     });
+}
 
-    // Add to blacklist
-    addBlacklistButton.addEventListener('click', function () {
-        const site = blacklistInput.value.trim().toLowerCase();
-        if (site && !defaultBlockedSites.includes(site)) {
-            addListItem(site, blacklistList, 'blacklist', false);
-            saveToStorage(site, 'blacklist');
-            blacklistInput.value = '';
-        }
-    });
-
-    // Add to whitelist
-    addWhitelistButton.addEventListener('click', function () {
-        const site = whitelistInput.value.trim().toLowerCase();
-        if (site) {
-            addListItem(site, whitelistList, 'whitelist', false);
-            saveToStorage(site, 'whitelist');
-            whitelistInput.value = '';
-        }
-    });
-
-    // Add list item
-    function addListItem(site, listElement, listType, isDefault) {
-        const li = document.createElement('li');
-        li.textContent = site;
-        if (!isDefault) {
-            const removeButton = document.createElement('button');
-            removeButton.textContent = 'Remove';
-            removeButton.addEventListener('click', function () {
-                listElement.removeChild(li);
-                removeFromStorage(site, listType);
-            });
-            li.appendChild(removeButton);
-        }
-        listElement.appendChild(li);
+function addSiteToList(inputElement, listElement, listType) {
+    const site = inputElement.value.trim().toLowerCase();
+    if (site && (!defaultBlockedSites.includes(site) || listType === 'whitelist')) {
+        addListItem(site, listElement, listType, false);
+        saveSiteToStorage(site, listType);
+        inputElement.value = '';
     }
+}
 
-    // Save site to storage
-    function saveToStorage(site, listType) {
-        chrome.storage.local.get([listType], function (result) {
-            const updatedList = result[listType] ? [...new Set([...result[listType], site])] : [site];
-            chrome.storage.local.set({ [listType]: updatedList });
+function displayList(list, listElement, listType, isDefaultList) {
+    list.forEach(site => addListItem(site, listElement, listType, isDefaultList && defaultBlockedSites.includes(site)));
+}
+
+function addListItem(site, listElement, listType, isDefault) {
+    const li = document.createElement('li');
+    li.textContent = site;
+    if (!isDefault) {
+        const removeButton = document.createElement('button');
+        removeButton.textContent = 'Remove';
+        removeButton.addEventListener('click', function () {
+            listElement.removeChild(li);
+            removeSiteFromStorage(site, listType);
         });
+        li.appendChild(removeButton);
     }
+    listElement.appendChild(li);
+}
 
-    // Remove site from storage
-    function removeFromStorage(site, listType) {
-        chrome.storage.local.get([listType], function (result) {
-            const updatedList = result[listType].filter(s => s !== site);
-            chrome.storage.local.set({ [listType]: updatedList });
-        });
-    }
-});
+function saveSiteToStorage(site, listType) {
+    chrome.storage.local.get([listType], function (result) {
+        const updatedList = mergeLists(result[listType] || [], [site]);
+        chrome.storage.local.set({ [listType]: updatedList });
+    });
+}
+
+function removeSiteFromStorage(site, listType) {
+    chrome.storage.local.get([listType], function (result) {
+        const updatedList = result[listType].filter(s => s !== site);
+        chrome.storage.local.set({ [listType]: updatedList });
+    });
+}
+
+function mergeLists(defaultList, customList) {
+    return [...new Set([...defaultList, ...customList])];
+}
