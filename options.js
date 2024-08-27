@@ -80,3 +80,17 @@ function removeSiteFromStorage(site, listType) {
 function mergeLists(defaultList, customList) {
     return [...new Set([...defaultList, ...customList])];
 }
+
+document.getElementById('saveTimerSettings').addEventListener('click', function() {
+    const timerDuration = document.getElementById('timerDuration').value;
+    chrome.storage.sync.set({timerDuration: parseInt(timerDuration)}, function() {
+        alert('Timer settings saved!');
+    });
+});
+
+// Load saved timer duration
+chrome.storage.sync.get(['timerDuration'], function(result) {
+    if (result.timerDuration) {
+        document.getElementById('timerDuration').value = result.timerDuration;
+    }
+});

@@ -1,23 +1,46 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Focus Mode Options</title>
     <link rel="stylesheet" type="text/css" href="options.css">
-  </head>
-  <body>
-    <h1>Focus Mode Options</h1>
-    <div>
-      <h2>Blacklist</h2>
-      <input type="text" id="blacklist-input" placeholder="Add a website to blacklist">
-      <button id="add-blacklist">Add</button>
-      <ul id="blacklist"></ul>
-    </div>
-    <div>
-      <h2>Whitelist</h2>
-      <input type="text" id="whitelist-input" placeholder="Add a website to whitelist">
-      <button id="add-whitelist">Add</button>
-      <ul id="whitelist"></ul>
+</head>
+<body>
+    <div class="container">
+        <h1>Focus Mode Options</h1>
+        <div class="list-section">
+            <h2>Blacklist</h2>
+            <div class="input-group">
+                <input type="text" id="blacklist-input" placeholder="Add a website to blacklist">
+                <button id="add-blacklist" title="Add this website to your blacklist">Add</button>
+            </div>
+            <ul id="blacklist"></ul>
+        </div>
+        <div class="list-section">
+            <h2>Whitelist</h2>
+            <div class="input-group">
+                <input type="text" id="whitelist-input" placeholder="Add a website to whitelist">
+                <button id="add-whitelist" title="Add this website to your whitelist">Add</button>
+            </div>
+            <ul id="whitelist"></ul>
+        </div>
+        <div class="timer-settings">
+            <h2>Timer Settings</h2>
+            <label for="timerDuration">Focus session duration (minutes):</label>
+            <input type="number" id="timerDuration" min="1" max="120" value="25">
+            <button id="saveTimerSettings">Save Timer Settings</button>
+        </div>
+        <div class="instructions">
+            <h2>How to Use</h2>
+            <p>Customize your Focus Mode experience by managing your blacklist and whitelist:</p>
+            <ul>
+                <li><strong>Blacklist:</strong> Add websites you want to block during focus sessions.</li>
+                <li><strong>Whitelist:</strong> Add exceptions - websites you want to access even during focus mode.</li>
+            </ul>
+            <p>Enter domain names without 'http://' or 'www.' (e.g., 'facebook.com').</p>
+        </div>
     </div>
     <script src="options.js"></script>
-  </body>
+</body>
 </html>

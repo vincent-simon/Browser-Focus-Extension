@@ -1,13 +1,26 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Focus Mode</title>
     <link rel="stylesheet" type="text/css" href="popup.css">
-  </head>
-  <body>
-    <h1>Focus Mode</h1>
-    <button id="toggleFocus">Start Focus</button>
-    <button id="options">Options</button> <!-- New Options button -->
+</head>
+<body>
+    <div class="container">
+        <h1>Focus Mode</h1>
+        <div class="timer-container">
+            <div class="timer-progress">
+                <svg class="progress-ring" width="120" height="120">
+                    <circle class="progress-ring__circle" stroke="#4A90E2" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+                </svg>
+                <div class="timer-display">25:00</div>
+            </div>
+            <button id="startTimer" class="primary-button">Start Timer</button>
+        </div>
+        <button id="toggleFocus" class="primary-button">Start Focus</button>
+        <button id="options" class="secondary-button">Options</button>
+    </div>
     <script src="popup.js"></script>
-  </body>
+</body>
 </html>
